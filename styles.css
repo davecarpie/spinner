@@ -1,0 +1,25 @@
+#mainContainer {
+  margin: 0 auto;
+  position: relative;
+  width: 500px;
+}
+
+.text {
+  text-align: center;
+  font-family: Helvetica, Arial, Sans-Serif;
+}
+
+#score {
+  margin: 0;
+  font-size: 1.5em;
+}
+
+#explanation {
+  margin: 5px 0px;
+  font-size: 1.5em;
+}
+
+#title {
+  margin: 10px 0px;
+  font-size: 3em;
+}

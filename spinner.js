@@ -21,9 +21,10 @@ var score = 0;
 
 function userClicked() {
   if (withinGoal(rotation)) {
-    console.log('good click')
 
     score++;
+    document.getElementById('score').innerHTML = "Score: " + score
+
     var colors = Object.keys(segments)
     goalIndex = colors.indexOf(goal);
     colors.splice(goalIndex, 1);
@@ -32,19 +33,13 @@ function userClicked() {
     rand *= colors.length;
     rand = Math.floor(rand)
 
-    console.log(colors);
-    console.log(rand)
-
     goal = colors[rand]
-    console.log(goal)
 
     rotationDir = -rotationDir;
 
     // speed *= 0.9
-    console.log(speed)
 
   } else {
-    console.log('bad click')
     window.cancelAnimationFrame(requestId);
   }
 }
@@ -61,10 +56,8 @@ function adjustToRegularRadians(rotation) {
 
 function withinGoal(rotation) {
   if (goal == "gold") {
-    // console.log(segments[goal][0])
     return rotation > segments[goal][0]  || rotation < segments[goal][1]
   }
-  // console.log(goal)
   return rotation > segments[goal][0] && rotation < segments[goal][1]
 }
 
@@ -150,6 +143,3 @@ document.getElementById("spinnerCanvas").addEventListener('click', function() {
 requestId = window.requestAnimationFrame(function() {
   updateGameState(new Date());
 })
-
-// draw(new Date())
-// console.log(rotation)
