@@ -1,9 +1,92 @@
 var rotationDir = 1
+
+var prevRotation = 0;
 var rotation = 0;
 
-function draw(prevUpdateTime) {
+var requestId = null;
 
-  // Basic draw of colored circle
+var segments = {
+  "blue" : [Math.PI/4, 3*Math.PI/4],
+  "red" : [3*Math.PI/4, 5*Math.PI/4],
+  "green" : [5*Math.PI/4, 7*Math.PI/4],
+  "gold" : [7*Math.PI/4, Math.PI/4],
+}
+
+var speed = 600;
+
+var goal = "red"
+
+var score = 0;
+
+
+function userClicked() {
+  if (withinGoal(rotation)) {
+    console.log('good click')
+
+    score++;
+    var colors = Object.keys(segments)
+    goalIndex = colors.indexOf(goal);
+    colors.splice(goalIndex, 1);
+
+    var rand = Math.random();
+    rand *= colors.length;
+    rand = Math.floor(rand)
+
+    console.log(colors);
+    console.log(rand)
+
+    goal = colors[rand]
+    console.log(goal)
+
+    rotationDir = -rotationDir;
+
+    // speed *= 0.9
+    console.log(speed)
+
+  } else {
+    console.log('bad click')
+    window.cancelAnimationFrame(requestId);
+  }
+}
+
+
+function adjustToRegularRadians(rotation) {
+  if (rotation >= Math.PI * 2) {
+    rotation -= Math.PI * 2;
+  } else if (rotation < 0) {
+    rotation += Math.PI * 2;
+  }
+  return rotation
+}
+
+function withinGoal(rotation) {
+  if (goal == "gold") {
+    // console.log(segments[goal][0])
+    return rotation > segments[goal][0]  || rotation < segments[goal][1]
+  }
+  // console.log(goal)
+  return rotation > segments[goal][0] && rotation < segments[goal][1]
+}
+
+function updateGameState(prevUpdateTime) {
+  if (withinGoal(prevRotation) && !withinGoal(rotation)) {
+    rotation = (Math.round(rotation * 8 / Math.PI) * Math.PI)/ 8;
+    draw(new Date());
+
+    return;
+  }
+
+  var time = draw(prevUpdateTime);
+
+  requestId = window.requestAnimationFrame(function() {
+    updateGameState(time);
+  })
+}
+
+function draw(prevUpdateTime) {
+  var time = new Date();
+  var timeDiff = Math.abs(time - prevUpdateTime)
+
   var canvas = document.getElementById('spinnerCanvas');
   var context = canvas.getContext('2d');
 
@@ -16,7 +99,7 @@ function draw(prevUpdateTime) {
   var startAngle = 0.25 * Math.PI;
   var endAngle = 0.75 * Math.PI;
 
-  (['red', 'green', 'yellow', 'blue']).forEach(function(color) {
+  (['red', 'green', 'gold', 'blue']).forEach(function(color) {
     context.beginPath()
     context.arc(x, y, radius, startAngle, endAngle);
     context.lineWidth = 25;
@@ -29,17 +112,16 @@ function draw(prevUpdateTime) {
 
   context.save();
 
-  var time = new Date();
-
-  var timeDiff = Math.abs(time - prevUpdateTime)
-
   // draw spinner
   // start it at 15px to the left of the center
-  context.fillStyle = "blue"
-  context.strokeStyle = "blue"
+  context.fillStyle = goal
+  context.strokeStyle = goal
 
   context.translate(x, y);
-  rotation += (Math.PI/1000) * timeDiff * rotationDir;
+  prevRotation = rotation;
+  rotation += (Math.PI/speed) * timeDiff * rotationDir;
+  rotation = adjustToRegularRadians(rotation);
+
   context.rotate(rotation);
 
   context.beginPath();
@@ -58,15 +140,16 @@ function draw(prevUpdateTime) {
 
   context.restore();
 
-  window.requestAnimationFrame(function() {
-    draw(time);
-  })
+  return time;
 }
 
 document.getElementById("spinnerCanvas").addEventListener('click', function() {
-  rotationDir = -rotationDir;
+  userClicked();
 });
 
-window.requestAnimationFrame(function() {
-  draw(new Date());
+requestId = window.requestAnimationFrame(function() {
+  updateGameState(new Date());
 })
+
+// draw(new Date())
+// console.log(rotation)
