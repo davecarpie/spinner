@@ -12,17 +12,66 @@ var segments = {
   "gold" : [7*Math.PI/4, Math.PI/4],
 }
 
-var speed = 600;
+var GameStates = {
+  WAITING_TO_START : "Waiting to start",
+  PLAYING : "Plaing",
+  TRY_AGAIN : "On try again screen"
+}
+
+var speedBase = 1200;
 
 var goal = "red"
 
 var score = 0;
+var highScore = 0;
+
+var gameState = GameStates.WAITING_TO_START;
+
+function setInitialVariables() {
+  rotationDir = 1;
+  prevRotation = 0;
+  rotation = 0;
+  speedBase = 1200;
+  goal = "red"
+  score = 0;
+}
 
 
 function userClicked() {
+  if (gameState == GameStates.WAITING_TO_START) {
+    // start the game
+    requestId = requestId = window.requestAnimationFrame(function() {
+      updateGameState(new Date());
+    });
+    gameState = GameStates.PLAYING;
+    return;
+  } else if (gameState == GameStates.PLAYING) { // test to see if its a correct click and update accordingly
+    return clickedInGame();
+  } else { // On try again screen, go to waiting to play screen
+    setTimeout(function() {
+      setInitialVariables();
+      draw(new Date());
+      document.getElementById('score').innerHTML = "Score: 0"
+      gameState = GameStates.WAITING_TO_START;
+    }, 1000);
+    return;
+  }
+}
+
+function updateHighScore() {
+  console.log('hers')
+  document.getElementById('highScore').innerHTML = "High Score: " + highScore
+}
+
+function clickedInGame() {
   if (withinGoal(rotation)) {
 
     score++;
+    console.log(score + " " + highScore);
+    if (score > highScore)
+      highScore = score;
+      updateHighScore();
+
     document.getElementById('score').innerHTML = "Score: " + score
 
     var colors = Object.keys(segments)
@@ -32,18 +81,19 @@ function userClicked() {
     var rand = Math.random();
     rand *= colors.length;
     rand = Math.floor(rand)
-
     goal = colors[rand]
 
     rotationDir = -rotationDir;
 
-    // speed *= 0.9
+    speedBase = speedBase * Math.exp(-1/10);
 
   } else {
     window.cancelAnimationFrame(requestId);
+    gameState = GameStates.TRY_AGAIN;
+    draw(new Date());
+    return drawTryAgain();
   }
-}
-
+} 
 
 function adjustToRegularRadians(rotation) {
   if (rotation >= Math.PI * 2) {
@@ -65,7 +115,8 @@ function updateGameState(prevUpdateTime) {
   if (withinGoal(prevRotation) && !withinGoal(rotation)) {
     rotation = (Math.round(rotation * 8 / Math.PI) * Math.PI)/ 8;
     draw(new Date());
-
+    drawTryAgain();
+    gameState = GameStates.TRY_AGAIN;
     return;
   }
 
@@ -112,7 +163,7 @@ function draw(prevUpdateTime) {
 
   context.translate(x, y);
   prevRotation = rotation;
-  rotation += (Math.PI/speed) * timeDiff * rotationDir;
+  rotation += (Math.PI/(speedBase + 500)) * timeDiff * rotationDir;
   rotation = adjustToRegularRadians(rotation);
 
   context.rotate(rotation);
@@ -122,7 +173,6 @@ function draw(prevUpdateTime) {
   context.lineTo(0, -radius + 30);
   context.lineTo(-15, 0);
   context.lineJoin = "round";
-  //context.arcTo(x+15, y, x-15, y, 15, true)
   context.stroke();
   context.fill()
 
@@ -136,10 +186,22 @@ function draw(prevUpdateTime) {
   return time;
 }
 
+function drawTryAgain() {
+  var canvas = document.getElementById('spinnerCanvas');
+  var context = canvas.getContext('2d');
+
+  context.fillStyle = "rgba(255,80,80,0.9)";
+  context.fillRect(0, canvas.height / 3, canvas.width, canvas.height / 3);
+
+  context.fillStyle = "white"
+  context.textBaseline = "middle"
+  context.font = "80px Helvetica";
+  context.textAlign = "center"
+  context.fillText("Play Again?", canvas.width/2, canvas.height / 2, canvas.width)
+}
+
 document.getElementById("spinnerCanvas").addEventListener('click', function() {
   userClicked();
 });
 
-requestId = window.requestAnimationFrame(function() {
-  updateGameState(new Date());
-})
+draw(new Date())
