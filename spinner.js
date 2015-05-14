@@ -1,7 +1,7 @@
 var rotationDir = 1
-
 var prevRotation = 0;
 var rotation = 0;
+var speedBase = 1200;
 
 var requestId = null;
 
@@ -11,21 +11,17 @@ var segments = {
   "green" : [5*Math.PI/4, 7*Math.PI/4],
   "gold" : [7*Math.PI/4, Math.PI/4],
 }
+var goal = "red"
 
 var GameStates = {
   WAITING_TO_START : "Waiting to start",
   PLAYING : "Plaing",
   TRY_AGAIN : "On try again screen"
 }
-
-var speedBase = 1200;
-
-var goal = "red"
+var gameState = GameStates.WAITING_TO_START;
 
 var score = 0;
 var highScore = 0;
-
-var gameState = GameStates.WAITING_TO_START;
 
 function setInitialVariables() {
   rotationDir = 1;
@@ -36,10 +32,8 @@ function setInitialVariables() {
   score = 0;
 }
 
-
 function userClicked() {
-  if (gameState == GameStates.WAITING_TO_START) {
-    // start the game
+  if (gameState == GameStates.WAITING_TO_START) { // start the game
     requestId = requestId = window.requestAnimationFrame(function() {
       updateGameState(new Date());
     });
@@ -59,20 +53,18 @@ function userClicked() {
 }
 
 function updateHighScore() {
-  console.log('hers')
   document.getElementById('highScore').innerHTML = "High Score: " + highScore
 }
 
 function clickedInGame() {
   if (withinGoal(rotation)) {
-
     score++;
-    console.log(score + " " + highScore);
-    if (score > highScore)
+    document.getElementById('score').innerHTML = "Score: " + score
+
+    if (score > highScore) {
       highScore = score;
       updateHighScore();
-
-    document.getElementById('score').innerHTML = "Score: " + score
+    }
 
     var colors = Object.keys(segments)
     goalIndex = colors.indexOf(goal);
@@ -84,9 +76,7 @@ function clickedInGame() {
     goal = colors[rand]
 
     rotationDir = -rotationDir;
-
     speedBase = speedBase * Math.exp(-1/10);
-
   } else {
     window.cancelAnimationFrame(requestId);
     gameState = GameStates.TRY_AGAIN;
@@ -121,7 +111,6 @@ function updateGameState(prevUpdateTime) {
   }
 
   var time = draw(prevUpdateTime);
-
   requestId = window.requestAnimationFrame(function() {
     updateGameState(time);
   })
@@ -138,7 +127,6 @@ function draw(prevUpdateTime) {
 
   var x = canvas.width / 2;
   var y = canvas.height / 2;
-
   var radius = (canvas.width/2) - 20;
   var startAngle = 0.25 * Math.PI;
   var endAngle = 0.75 * Math.PI;
