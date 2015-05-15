@@ -5,6 +5,10 @@ var speedBase = 1200;
 
 var requestId = null;
 
+var bang = new Audio('explosion.wav');
+var beats = [new Audio('beat1.mp3'), new Audio('beat2.wav')];
+console.log(beats)
+
 var segments = {
   "blue" : [Math.PI/4, 3*Math.PI/4],
   "red" : [3*Math.PI/4, 5*Math.PI/4],
@@ -61,6 +65,8 @@ function clickedInGame() {
     score++;
     document.getElementById('score').innerHTML = "Score: " + score
 
+    beats[score % 2].play()
+
     if (score > highScore) {
       highScore = score;
       updateHighScore();
@@ -79,6 +85,7 @@ function clickedInGame() {
     speedBase = speedBase * Math.exp(-1/10);
   } else {
     window.cancelAnimationFrame(requestId);
+    bang.play()
     gameState = GameStates.TRY_AGAIN;
     draw(new Date());
     return drawTryAgain();
@@ -104,6 +111,7 @@ function withinGoal(rotation) {
 function updateGameState(prevUpdateTime) {
   if (withinGoal(prevRotation) && !withinGoal(rotation)) {
     rotation = (Math.round(rotation * 8 / Math.PI) * Math.PI)/ 8;
+    bang.play();
     draw(new Date());
     drawTryAgain();
     gameState = GameStates.TRY_AGAIN;
